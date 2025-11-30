@@ -1,0 +1,16 @@
+{
+  "compatibility_date": "2025-10-08",
+  "main": "src/index.ts",
+  "name": "nn1-dev-api",
+  "upload_source_maps": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "f780959b-2011-453c-a033-056d9f7bd684",
+      "database_name": "nn1-dev-db"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
