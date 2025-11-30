@@ -1,8 +1,8 @@
-import { Hono } from "hono";
+import { Hono, Context, Next } from "hono";
 
 export interface Env {
   DB: D1Database;
-  // SECRET: SecretsStoreSecret;
+  AUTH: string;
 }
 
 export default {
@@ -18,33 +18,29 @@ export default {
     const app = new Hono<{ Bindings: Env }>();
 
     // Secret Store key value that we have set
-    // const secret = await env.SECRET.get();
+    const secret = env.AUTH;
 
     // Authentication middleware that verifies the Authorization header
     // is sent in on each request and matches the value of our Secret key.
     // If a match is not found we return a 401 and prevent further access.
-    // const authMiddleware = async (c: Context, next: Next) => {
-    //     const authHeader = c.req.header('Authorization');
-    //     if (!authHeader) {
-    //         return c.json({ error: 'Unauthorized' }, 401);
-    //     }
-    //
-    //     const token = authHeader.startsWith('Bearer ')
-    //         ? authHeader.substring(7)
-    //         : authHeader;
-    //
-    //     if (token !== secret) {
-    //         return c.json({ error: 'Unauthorized' }, 401);
-    //     }
-    //
-    //     return next();
-    // };
+    const authMiddleware = async (c: Context, next: Next) => {
+      const authHeader = c.req.header("Authorization");
+      if (!authHeader) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
 
-    // CRUD REST endpoints made available to all of our tables
+      const token = authHeader.startsWith("Bearer ")
+        ? authHeader.substring(7)
+        : authHeader;
 
-    // Execute a raw SQL statement with parameters with this route
-    // app.post("/query", authMiddleware, async (c) => {
-    app.get("/", async (c) => {
+      if (token !== secret) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      return next();
+    };
+
+    app.post("/query", authMiddleware, async (c) => {
       try {
         // const body = await c.req.json();
         // const { query, params } = body;
