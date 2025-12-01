@@ -17,11 +17,11 @@
     "publish": true
   },
   "devDependencies": {
-    "typescript": "5.8.3",
-    "wrangler": "4.21.x"
+    "typescript": "5.9.3",
+    "wrangler": "4.51.0"
   },
   "scripts": {
-    "cf-typegen": "wrangler types",
+    "gen": "wrangler types",
     "check": "tsc && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "dev": "pnpm seedLocalD1 && wrangler dev",
