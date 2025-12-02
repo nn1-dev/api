@@ -138,7 +138,7 @@ app.put("/:subscriberId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: { ...results[0], confirmed: 1 },
+      data: { ...results[0], confirmed: 1, confirmation_token: "" },
     },
     200,
   );
