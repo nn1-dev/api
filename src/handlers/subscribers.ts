@@ -10,8 +10,6 @@ app.get("/", async (c) => {
     `select * from subscribers`,
   ).all<Subscriber>();
 
-  console.log({ results });
-
   return c.json(
     {
       status: "success",
