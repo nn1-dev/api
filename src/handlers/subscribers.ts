@@ -5,14 +5,6 @@ import { Resend } from "resend";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
-export interface Subscriber {
-  id: string;
-  email: string;
-  confirmed: number;
-  confirmation_token: string | null;
-  created_at: string;
-}
-
 app.get("/", async (c) => {
   const { results } = await c.env.DB.prepare(
     `select * from subscribers`,

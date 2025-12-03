@@ -5,20 +5,8 @@ import { renderEmailSignupSuccess } from "../../emails/signup-success";
 import { renderEmailAdminSignupSuccess } from "../../emails/admin-signup-success";
 import { renderEmailSignupConfirm } from "../../emails/signup-confirm";
 import { renderEmailAdminSignupCancel } from "../../emails/admin-signup-cancel";
-import { Subscriber } from "./subscribers";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
-
-interface Ticket {
-  id: string;
-  event_id: number;
-  email: string;
-  name: string;
-  confirmed: number;
-  confirmation_token: string | null;
-  subscribe: number;
-  created_at: string;
-}
 
 app.get("/", async (c) => {
   const { results } = await c.env.DB.prepare(
