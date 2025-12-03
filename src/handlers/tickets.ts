@@ -65,7 +65,7 @@ app.get("/:eventId/:ticketId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Ticket with id ${ticketId} not found`,
+        data: `Ticket with id ${ticketId} not found.`,
       },
       404,
     );
@@ -118,7 +118,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data",
+        data: "Incorrect request data.",
       },
       400,
     );
@@ -295,7 +295,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Ticket with id ${id} not found`,
+        data: `Ticket with id ${id} not found.`,
       },
       404,
     );
@@ -340,7 +340,7 @@ app.put("/:eventId/:ticketId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: "invalid ticket id or confirmation token",
+        data: "Invalid ticket id or confirmation token.",
       },
       404,
     );
@@ -441,7 +441,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Ticket with id ${ticketId} not found`,
+        data: `Ticket with id ${ticketId} not found.`,
       },
       404,
     );

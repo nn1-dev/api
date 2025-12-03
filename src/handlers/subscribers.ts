@@ -42,7 +42,7 @@ app.get("/:subscriberId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Subscriber with id ${subscriberId} not found`,
+        data: `Subscriber with id ${subscriberId} not found.`,
       },
       404,
     );
@@ -64,7 +64,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data",
+        data: "Incorrect request data.",
       },
       400,
     );
@@ -106,7 +106,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Subscriber with id ${id} not found`,
+        data: `Subscriber with id ${id} not found.`,
       },
       404,
     );
@@ -139,7 +139,7 @@ app.put("/:subscriberId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: "invalid subscriber id or confirmation token",
+        data: "Invalid subscriber id or confirmation token.",
       },
       404,
     );
@@ -196,7 +196,7 @@ app.delete("/:subscriberId", async (c) => {
     return c.json(
       {
         status: "error",
-        data: `Subscriber with id ${subscriberId} not found`,
+        data: `Subscriber with id ${subscriberId} not found.`,
       },
       404,
     );
