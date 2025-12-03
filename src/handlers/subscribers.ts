@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { normalizeEmail } from "../utils";
 import { renderEmailAdminNewsletterSubscribe } from "../../emails/admin-newsletter-subscribe";
+import { renderEmailAdminNewsletterUnsubscribe } from "../../emails/admin-newsletter-unsubscribe";
+
 import { Resend } from "resend";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
@@ -103,29 +105,33 @@ app.post("/", async (c) => {
     );
   }
 
-  const resend = new Resend(c.env.API_KEY_RESEND);
-
-  const emailAdmin = await renderEmailAdminNewsletterSubscribe({
-    email: normalizedBodyEmail,
-  });
-
-  const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
-    to: c.env.ADMIN_EMAILS.split(","),
-    subject: "✨ Newsletter - user subscribed",
-    html: emailAdmin.html,
-    text: emailAdmin.text,
-  });
-
-  if (error) {
-    return c.json(
-      {
-        status: "error",
-        data: error,
-      },
-      { status: 400 },
-    );
-  }
+  // here we should send an email to confirm a subscription,
+  // we dont have a template for it now, nor we have a support for it on the
+  // frontend so this one can wait
+  //
+  // const resend = new Resend(c.env.API_KEY_RESEND);
+  //
+  // const emailAdmin = await renderEmailAdminNewsletterSubscribe({
+  //   email: normalizedBodyEmail,
+  // });
+  //
+  // const { error } = await resend.emails.send({
+  //   from: "NN1 Dev Club <club@nn1.dev>",
+  //   to: c.env.ADMIN_EMAILS.split(","),
+  //   subject: "✨ Newsletter - user subscribed",
+  //   html: emailAdmin.html,
+  //   text: emailAdmin.text,
+  // });
+  //
+  // if (error) {
+  //   return c.json(
+  //     {
+  //       status: "error",
+  //       data: error,
+  //     },
+  //     { status: 400 },
+  //   );
+  // }
 
   return c.json(
     {
@@ -220,6 +226,30 @@ app.delete("/:subscriberId", async (c) => {
   await c.env.DB.prepare(`delete from subscribers where id = ?`)
     .bind(subscriberId)
     .run();
+
+  const resend = new Resend(c.env.API_KEY_RESEND);
+
+  const emailAdmin = await renderEmailAdminNewsletterUnsubscribe({
+    email: subscriber.email,
+  });
+
+  const { error } = await resend.emails.send({
+    from: "NN1 Dev Club <club@nn1.dev>",
+    to: c.env.ADMIN_EMAILS.split(","),
+    subject: "✨ Newsletter - user unsubscribed",
+    html: emailAdmin.html,
+    text: emailAdmin.text,
+  });
+
+  if (error) {
+    return c.json(
+      {
+        status: "error",
+        data: error,
+      },
+      { status: 400 },
+    );
+  }
 
   return c.json(
     {
