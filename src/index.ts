@@ -5,6 +5,7 @@ import handlerErrorNotFound from "./handlers/errorNotFound";
 import handlerErrorServer from "./handlers/errorServer";
 import subscribers from "./handlers/subscribers";
 import tickets from "./handlers/tickets";
+import broadcast from "./handlers/broadcast";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -19,5 +20,6 @@ app.onError(handlerErrorServer);
 // routes
 app.route("/subscribers", subscribers);
 app.route("/tickets", tickets);
+app.route("/broadcast", broadcast);
 
 export default app;

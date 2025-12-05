@@ -1,1 +1,2 @@
-export { renderEmailEvent_9_2025_11_28 } from "./event-9-2025-11-28.tsx";
+export { renderEmailNewsletterTest } from "./newsletter-test";
+export { renderEmailEventTest } from "./event-10-test";
