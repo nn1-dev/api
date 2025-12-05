@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { normalizeEmail } from "../utils";
 import { renderEmailAdminNewsletterSubscribe } from "../../emails/admin-newsletter-subscribe";
 import { renderEmailAdminNewsletterUnsubscribe } from "../../emails/admin-newsletter-unsubscribe";
 
@@ -49,12 +48,12 @@ app.get("/:subscriberId", async (c) => {
   );
 });
 
-const SubscribersPostBody = z.object({
-  email: z.email().trim().toLowerCase(),
+const SubscribersPostBodySchema = z.object({
+  email: z.email().toLowerCase(),
 });
 
 app.post("/", async (c) => {
-  const body = SubscribersPostBody.safeParse(await c.req.json());
+  const body = SubscribersPostBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
     return c.json(
@@ -66,12 +65,12 @@ app.post("/", async (c) => {
     );
   }
 
-  const { data } = body;
+  const { email } = body.data;
 
   const subscriber = await c.env.DB.prepare(
     `select * from subscribers where email = ?`,
   )
-    .bind(data.email)
+    .bind(email)
     .first<Subscriber>();
 
   if (subscriber) {
@@ -89,7 +88,7 @@ app.post("/", async (c) => {
   await c.env.DB.prepare(
     `insert into subscribers (id, email, confirmed, confirmation_token) values (?, ?, ?, ?)`,
   )
-    .bind(id, data.email, 0, confirmation_token)
+    .bind(id, email, 0, confirmation_token)
     .run();
 
   const newSubscriber = await c.env.DB.prepare(
@@ -145,13 +144,13 @@ app.post("/", async (c) => {
   );
 });
 
-const SubscribersPutBody = z.object({
+const SubscribersPutBodySchema = z.object({
   confirmationToken: z.uuid(),
 });
 
 app.put("/:subscriberId", async (c) => {
   const { subscriberId } = c.req.param();
-  const body = SubscribersPutBody.safeParse(await c.req.json());
+  const body = SubscribersPutBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
     return c.json(
@@ -163,7 +162,7 @@ app.put("/:subscriberId", async (c) => {
     );
   }
 
-  const { data } = body;
+  const { confirmationToken } = body.data;
 
   const subscriber = await c.env.DB.prepare(
     `select * from subscribers where id = ?`,
@@ -171,7 +170,7 @@ app.put("/:subscriberId", async (c) => {
     .bind(subscriberId)
     .first<Subscriber>();
 
-  if (!subscriber || subscriber.confirmation_token !== data.confirmationToken) {
+  if (!subscriber || subscriber.confirmation_token !== confirmationToken) {
     return c.json(
       {
         status: "error",
