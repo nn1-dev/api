@@ -1,6 +1,3 @@
-const normalizeName = (s: string) => s.trim();
-const normalizeEmail = (s: string) => s.trim().toLowerCase();
-
 const chunkArray = <T>(array: T[], size: number) =>
   array.reduce<T[][]>(
     (chunks, item, index) => {
@@ -11,4 +8,4 @@ const chunkArray = <T>(array: T[], size: number) =>
     Array.from({ length: Math.ceil(array.length / size) }).map(() => []),
   );
 
-export { normalizeName, normalizeEmail, chunkArray };
+export { chunkArray };
