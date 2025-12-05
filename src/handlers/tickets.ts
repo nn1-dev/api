@@ -131,14 +131,14 @@ app.post("/", async (c) => {
 
   if (emailPreviouslyConfirmed) {
     const newTicketId = crypto.randomUUID();
-    const [_, newTicketResults] = await c.env.DB.batch<Ticket>([
+    const [_, newTicketResult] = await c.env.DB.batch<Ticket>([
       c.env.DB.prepare(
         `insert into tickets (id, event_id, email, name, confirmed, confirmation_token, subscribe) values (?, ?, ?, ?, ?, ?, ?)`,
       ).bind(newTicketId, eventId, email, name, 1, null, subscribe),
       c.env.DB.prepare(`select * from tickets where id = ?`).bind(newTicketId),
     ]);
 
-    if (!newTicketResults.results.length) {
+    if (!newTicketResult.results.length) {
       return c.json(
         {
           status: "error",
@@ -147,7 +147,7 @@ app.post("/", async (c) => {
         404,
       );
     }
-    const newTicket = newTicketResults.results[0];
+    const newTicket = newTicketResult.results[0];
 
     const [emailUser, emailAdmin] = await Promise.all([
       renderEmailSignupSuccess({
@@ -227,14 +227,14 @@ app.post("/", async (c) => {
   const id = crypto.randomUUID();
   const confirmation_token = crypto.randomUUID();
 
-  const [_, ticketsResults] = await c.env.DB.batch<Ticket>([
+  const [_, ticketsResult] = await c.env.DB.batch<Ticket>([
     c.env.DB.prepare(
       `insert into tickets (id, event_id, email, name, confirmed,  confirmation_token, subscribe ) values (?, ?, ?, ?, ?, ?, ?)`,
     ).bind(id, eventId, email, name, 0, confirmation_token, subscribe),
     c.env.DB.prepare(`select * from tickets where id = ?`).bind(id),
   ]);
 
-  if (!ticketsResults.results.length) {
+  if (!ticketsResult.results.length) {
     return c.json(
       {
         status: "error",
@@ -244,7 +244,7 @@ app.post("/", async (c) => {
     );
   }
 
-  const ticket = ticketsResults.results[0];
+  const ticket = ticketsResult.results[0];
 
   const emailTemplate = await renderEmailSignupConfirm({
     eventName: eventName,
@@ -411,7 +411,7 @@ app.put("/:eventId/:ticketId", async (c) => {
 app.delete("/:eventId/:ticketId", async (c) => {
   const { eventId, ticketId } = c.req.param();
 
-  const [ticketResults, _] = await c.env.DB.batch<Ticket>([
+  const [ticketResult, _] = await c.env.DB.batch<Ticket>([
     c.env.DB.prepare(
       `select * from tickets where event_id = ? and id = ?`,
     ).bind(eventId, ticketId),
@@ -421,7 +421,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
     ),
   ]);
 
-  if (!ticketResults.results.length) {
+  if (!ticketResult.results.length) {
     return c.json(
       {
         status: "error",
@@ -431,7 +431,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
     );
   }
 
-  const ticket = ticketResults.results[0];
+  const ticket = ticketResult.results[0];
 
   const resend = new Resend(c.env.API_KEY_RESEND);
 

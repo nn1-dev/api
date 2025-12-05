@@ -85,19 +85,15 @@ app.post("/", async (c) => {
 
   const id = crypto.randomUUID();
   const confirmation_token = crypto.randomUUID();
-  await c.env.DB.prepare(
-    `insert into subscribers (id, email, confirmed, confirmation_token) values (?, ?, ?, ?)`,
-  )
-    .bind(id, email, 0, confirmation_token)
-    .run();
 
-  const newSubscriber = await c.env.DB.prepare(
-    `select * from subscribers where id = ?`,
-  )
-    .bind(id)
-    .first<Subscriber>();
+  const [_, subscriberResult] = await c.env.DB.batch<Subscriber>([
+    c.env.DB.prepare(
+      `insert into subscribers (id, email, confirmed, confirmation_token) values (?, ?, ?, ?)`,
+    ).bind(id, email, 0, confirmation_token),
+    c.env.DB.prepare(`select * from subscribers where id = ?`).bind(id),
+  ]);
 
-  if (!newSubscriber) {
+  if (!subscriberResult.results.length) {
     return c.json(
       {
         status: "error",
@@ -106,6 +102,8 @@ app.post("/", async (c) => {
       404,
     );
   }
+
+  const newSubscriber = subscriberResult.results[0];
 
   // here we should send an email to confirm a subscription,
   // we dont have a template for it now, nor we have a support for it on the
@@ -221,13 +219,14 @@ app.put("/:subscriberId", async (c) => {
 app.delete("/:subscriberId", async (c) => {
   const { subscriberId } = c.req.param();
 
-  const subscriber = await c.env.DB.prepare(
-    `select * from subscribers where id = ?`,
-  )
-    .bind(subscriberId)
-    .first<Subscriber>();
+  const [subscriberResult, _] = await c.env.DB.batch<Subscriber>([
+    c.env.DB.prepare(`select * from subscribers where id = ?`).bind(
+      subscriberId,
+    ),
+    c.env.DB.prepare(`delete from subscribers where id = ?`).bind(subscriberId),
+  ]);
 
-  if (!subscriber) {
+  if (!subscriberResult.results.length) {
     return c.json(
       {
         status: "error",
@@ -237,36 +236,30 @@ app.delete("/:subscriberId", async (c) => {
     );
   }
 
-  await c.env.DB.prepare(`delete from subscribers where id = ?`)
-    .bind(subscriberId)
-    .run();
+  const subscriber = subscriberResult.results[0];
 
-  // only send a notification about the unsubscription if the user is confirmed
-  // i don't care about unconfirmed subscriptions, and we should purge them periodically
-  if (subscriber.confirmed) {
-    const resend = new Resend(c.env.API_KEY_RESEND);
+  const resend = new Resend(c.env.API_KEY_RESEND);
 
-    const emailAdmin = await renderEmailAdminNewsletterUnsubscribe({
-      email: subscriber.email,
-    });
+  const emailAdmin = await renderEmailAdminNewsletterUnsubscribe({
+    email: subscriber.email,
+  });
 
-    const { error } = await resend.emails.send({
-      from: "NN1 Dev Club <club@nn1.dev>",
-      to: c.env.ADMIN_EMAILS.split(","),
-      subject: "✨ Newsletter - user unsubscribed",
-      html: emailAdmin.html,
-      text: emailAdmin.text,
-    });
+  const { error } = await resend.emails.send({
+    from: "NN1 Dev Club <club@nn1.dev>",
+    to: c.env.ADMIN_EMAILS.split(","),
+    subject: "✨ Newsletter - user unsubscribed",
+    html: emailAdmin.html,
+    text: emailAdmin.text,
+  });
 
-    if (error) {
-      return c.json(
-        {
-          status: "error",
-          data: error,
-        },
-        { status: 400 },
-      );
-    }
+  if (error) {
+    return c.json(
+      {
+        status: "error",
+        data: error,
+      },
+      { status: 400 },
+    );
   }
 
   return c.json(
