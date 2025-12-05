@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     name TEXT NOT NULL,
     confirmed INTEGER NOT NULL CHECK (confirmed IN (0, 1)),
     confirmation_token TEXT,
-    subscribe INTEGER NOT NULL CHECK (confirmed IN (0, 1)),
+    subscribe INTEGER NOT NULL CHECK (subscribe IN (0, 1)),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
