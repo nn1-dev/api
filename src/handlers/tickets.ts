@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { normalizeEmail, normalizeName } from "../utils";
 import { renderEmailSignupSuccess } from "../../emails/signup-success";
 import { renderEmailAdminSignupSuccess } from "../../emails/admin-signup-success";
 import { renderEmailSignupConfirm } from "../../emails/signup-confirm";
@@ -106,13 +105,10 @@ app.post("/", async (c) => {
     subscribe,
   } = body.data;
 
-  const normalizedBodyName = normalizeName(name);
-  const normalizedBodyEmail = normalizeEmail(email);
-
   const existingTicket = await c.env.DB.prepare(
     `select * from tickets where event_id = ? and email = ?`,
   )
-    .bind(eventId, normalizedBodyEmail)
+    .bind(eventId, email)
     .first<Ticket>();
 
   if (existingTicket) {
@@ -128,26 +124,30 @@ app.post("/", async (c) => {
   const emailPreviouslyConfirmed = await c.env.DB.prepare(
     `select * from tickets where email = ? and confirmed = ?`,
   )
-    .bind(normalizedBodyEmail, 1)
+    .bind(email, 1)
     .first<Ticket>();
 
   const resend = new Resend(c.env.API_KEY_RESEND);
 
   if (emailPreviouslyConfirmed) {
     const newTicketId = crypto.randomUUID();
-    await c.env.DB.prepare(
-      `insert into tickets (id, event_id, email, name, confirmed, confirmation_token, subscribe) values (?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
-        newTicketId,
-        eventId,
-        normalizedBodyEmail,
-        normalizedBodyName,
-        1,
-        null,
-        subscribe,
-      )
-      .run();
+    const [_, newTicketResults] = await c.env.DB.batch<Ticket>([
+      c.env.DB.prepare(
+        `insert into tickets (id, event_id, email, name, confirmed, confirmation_token, subscribe) values (?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(newTicketId, eventId, email, name, 1, null, subscribe),
+      c.env.DB.prepare(`select * from tickets where id = ?`).bind(newTicketId),
+    ]);
+
+    if (!newTicketResults.results.length) {
+      return c.json(
+        {
+          status: "error",
+          data: `Ticket with id ${newTicketId} not found.`,
+        },
+        404,
+      );
+    }
+    const newTicket = newTicketResults.results[0];
 
     const [emailUser, emailAdmin] = await Promise.all([
       renderEmailSignupSuccess({
@@ -159,14 +159,14 @@ app.post("/", async (c) => {
         eventInviteUrlGoogle: eventInviteUrlGoogle,
       }),
       renderEmailAdminSignupSuccess({
-        name: normalizedBodyName,
-        email: normalizedBodyEmail,
+        name,
+        email,
       }),
     ]);
     const [emailUserResponse, emailAdminResponse] = await Promise.all([
       resend.emails.send({
         from: "NN1 Dev Club <club@nn1.dev>",
-        to: normalizedBodyEmail,
+        to: email,
         subject: eventName,
         html: emailUser.html,
         text: emailUser.text,
@@ -194,14 +194,14 @@ app.post("/", async (c) => {
       const subscriber = await c.env.DB.prepare(
         `select * from subscribers where email = ?`,
       )
-        .bind(normalizedBodyEmail)
+        .bind(email)
         .first<Subscriber>();
 
       if (subscriber && !subscriber.confirmed) {
         await c.env.DB.prepare(
           `update subscribers set confirmed = ?, confirmation_token = ? where email = ?`,
         )
-          .bind(1, null, normalizedBodyEmail)
+          .bind(1, null, email)
           .run();
       }
 
@@ -210,16 +210,10 @@ app.post("/", async (c) => {
         await c.env.DB.prepare(
           `insert into subscribers (id, email, confirmed, confirmation_token) values (?, ?, ?, ?)`,
         )
-          .bind(newSubscriberId, normalizedBodyEmail, 1, null)
+          .bind(newSubscriberId, email, 1, null)
           .run();
       }
     }
-
-    const newTicket = await c.env.DB.prepare(
-      `select * from tickets where id = ?`,
-    )
-      .bind(newTicketId)
-      .first<Ticket>();
 
     return c.json(
       {
@@ -233,19 +227,25 @@ app.post("/", async (c) => {
   const id = crypto.randomUUID();
   const confirmation_token = crypto.randomUUID();
 
-  await c.env.DB.prepare(
-    `insert into tickets (id, event_id, email, name, confirmed,  confirmation_token, subscribe ) values (?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind(
-      id,
-      eventId,
-      normalizedBodyEmail,
-      normalizedBodyName,
-      0,
-      confirmation_token,
-      subscribe,
-    )
-    .run();
+  const [_, ticketsResults] = await c.env.DB.batch<Ticket>([
+    c.env.DB.prepare(
+      `insert into tickets (id, event_id, email, name, confirmed,  confirmation_token, subscribe ) values (?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, eventId, email, name, 0, confirmation_token, subscribe),
+    c.env.DB.prepare(`select * from tickets where id = ?`).bind(id),
+  ]);
+
+  if (!ticketsResults.results.length) {
+    return c.json(
+      {
+        status: "error",
+        data: `Ticket with id ${id} not found.`,
+      },
+      404,
+    );
+  }
+
+  const ticket = ticketsResults.results[0];
+
   const emailTemplate = await renderEmailSignupConfirm({
     eventName: eventName,
     url: `${c.env.URL_CLIENT}/events/${eventId}/${id}/${confirmation_token}`,
@@ -253,7 +253,7 @@ app.post("/", async (c) => {
 
   const { error } = await resend.emails.send({
     from: "NN1 Dev Club <club@nn1.dev>",
-    to: normalizedBodyEmail,
+    to: email,
     subject: "Confirm your email please",
     html: emailTemplate.html,
     text: emailTemplate.text,
@@ -266,20 +266,6 @@ app.post("/", async (c) => {
         data: error,
       },
       400,
-    );
-  }
-
-  const ticket = await c.env.DB.prepare(`select * from tickets where id = ?`)
-    .bind(id)
-    .first<Ticket>();
-
-  if (!ticket) {
-    return c.json(
-      {
-        status: "error",
-        data: `Ticket with id ${id} not found.`,
-      },
-      404,
     );
   }
 
@@ -425,13 +411,17 @@ app.put("/:eventId/:ticketId", async (c) => {
 app.delete("/:eventId/:ticketId", async (c) => {
   const { eventId, ticketId } = c.req.param();
 
-  const ticket = await c.env.DB.prepare(
-    `select * from tickets where event_id = ? and id = ?`,
-  )
-    .bind(eventId, ticketId)
-    .first<Ticket>();
+  const [ticketResults, _] = await c.env.DB.batch<Ticket>([
+    c.env.DB.prepare(
+      `select * from tickets where event_id = ? and id = ?`,
+    ).bind(eventId, ticketId),
+    c.env.DB.prepare(`delete from tickets where event_id = ? and id = ?`).bind(
+      eventId,
+      ticketId,
+    ),
+  ]);
 
-  if (!ticket) {
+  if (!ticketResults.results.length) {
     return c.json(
       {
         status: "error",
@@ -441,9 +431,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
     );
   }
 
-  await c.env.DB.prepare(`delete from tickets where event_id = ? and id = ?`)
-    .bind(eventId, ticketId)
-    .run();
+  const ticket = ticketResults.results[0];
 
   const resend = new Resend(c.env.API_KEY_RESEND);
 
