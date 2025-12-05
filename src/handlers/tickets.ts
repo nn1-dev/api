@@ -452,13 +452,23 @@ app.delete("/:eventId/:ticketId", async (c) => {
     email: ticket.email,
   });
 
-  resend.emails.send({
+  const adminConfirmationError = await resend.emails.send({
     from: "NN1 Dev Club <club@nn1.dev>",
     to: c.env.ADMIN_EMAILS.split(","),
     subject: "Ticket cancelled 👎",
     html: email.html,
     text: email.text,
   });
+
+  if (adminConfirmationError.error) {
+    return c.json(
+      {
+        status: "error",
+        data: adminConfirmationError.error,
+      },
+      400,
+    );
+  }
 
   return c.json(
     {
