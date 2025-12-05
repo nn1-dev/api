@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
-
+import z from "zod";
 import { renderEmailEventTest, renderEmailNewsletterTest } from "../../emails";
 import { chunkArray } from "../utils";
 
@@ -63,20 +63,15 @@ async function createEmailPayload({
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
-app.post("/newsletter", async (c) => {
-  const {
-    template: bodyTemplate,
-    excludeMembersEventId: bodyExcludeMembersEventId,
-  } = await c.req.json<{
-    template: string;
-    excludeMembersEventId?: number;
-  }>();
+const BroadcastNewsletterBodySchema = z.object({
+  template: z.string(),
+  excludeMembersEventId: z.string().optional(),
+});
 
-  // TODO: Better payload validation
-  if (
-    !bodyTemplate ||
-    (bodyExcludeMembersEventId && typeof bodyExcludeMembersEventId !== "number")
-  ) {
+app.post("/newsletter", async (c) => {
+  const body = BroadcastNewsletterBodySchema.safeParse(await c.req.json());
+
+  if (!body.success) {
     return c.json(
       {
         status: "error",
@@ -85,6 +80,11 @@ app.post("/newsletter", async (c) => {
       400,
     );
   }
+
+  const {
+    template: bodyTemplate,
+    excludeMembersEventId: bodyExcludeMembersEventId,
+  } = body.data;
 
   if (!Object.keys(TEMPLATE_MAPPER_NEWSLETTER).includes(bodyTemplate)) {
     return Response.json(
@@ -159,19 +159,15 @@ app.post("/newsletter", async (c) => {
   );
 });
 
-app.post("/event", async (c) => {
-  const { template: bodyTemplate, eventId: bodyEventId } = await c.req.json<{
-    template: string;
-    eventId: number;
-  }>();
+const BroadcastEventBodySchema = z.object({
+  template: z.string(),
+  eventId: z.number(),
+});
 
-  // TODO: Better payload validation
-  if (
-    !bodyTemplate ||
-    typeof bodyTemplate !== "string" ||
-    !bodyEventId ||
-    typeof bodyEventId !== "number"
-  ) {
+app.post("/event", async (c) => {
+  const body = BroadcastEventBodySchema.safeParse(await c.req.json());
+
+  if (!body.success) {
     return c.json(
       {
         status: "error",
@@ -180,6 +176,8 @@ app.post("/event", async (c) => {
       400,
     );
   }
+
+  const { template: bodyTemplate, eventId: bodyEventId } = body.data;
 
   if (!Object.keys(TEMPLATE_MAPPER_EVENT).includes(bodyTemplate)) {
     return Response.json(
