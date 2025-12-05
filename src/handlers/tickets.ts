@@ -140,12 +140,12 @@ app.post("/", async (c) => {
   const resend = new Resend(c.env.API_KEY_RESEND);
 
   if (emailPreviouslyConfirmed) {
-    const id = crypto.randomUUID();
+    const newTicketId = crypto.randomUUID();
     await c.env.DB.prepare(
       `insert into tickets (id, event_id, email, name, confirmed, confirmation_token, subscribe) values (?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
-        id,
+        newTicketId,
         eventId,
         normalizedBodyEmail,
         normalizedBodyName,
@@ -157,7 +157,7 @@ app.post("/", async (c) => {
 
     const [emailUser, emailAdmin] = await Promise.all([
       renderEmailSignupSuccess({
-        ticketUrl: `${c.env.URL_CLIENT}/events/${eventId}/${id}`,
+        ticketUrl: `${c.env.URL_CLIENT}/events/${eventId}/${newTicketId}`,
         eventName: eventName,
         eventDate: eventDate,
         eventLocation: eventLocation,
@@ -212,10 +212,11 @@ app.post("/", async (c) => {
       }
 
       if (!subscriber) {
+        const newSubscriberId = crypto.randomUUID();
         await c.env.DB.prepare(
-          `insert into subscribers (email, confirmed) values (?, ?)`,
+          `insert into subscribers (id, email, confirmed, confirmation_token) values (?, ?, ?, ?)`,
         )
-          .bind(normalizedBodyEmail, 1)
+          .bind(newSubscriberId, normalizedBodyEmail, 1, null)
           .run();
       }
     }
@@ -223,7 +224,7 @@ app.post("/", async (c) => {
     const newTicket = await c.env.DB.prepare(
       `select * from tickets where id = ?`,
     )
-      .bind(id)
+      .bind(newTicketId)
       .first<Ticket>();
 
     return c.json(
@@ -251,10 +252,9 @@ app.post("/", async (c) => {
       subscribe,
     )
     .run();
-
   const emailTemplate = await renderEmailSignupConfirm({
     eventName: eventName,
-    url: `https://nn1.dev/events/${eventId}/${id}/${confirmation_token}`,
+    url: `${c.env.URL_CLIENT}/events/${eventId}/${id}/${confirmation_token}`,
   });
 
   const { error } = await resend.emails.send({
