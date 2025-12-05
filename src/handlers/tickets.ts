@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
+import z from "zod";
 import { normalizeEmail, normalizeName } from "../utils";
 import { renderEmailSignupSuccess } from "../../emails/signup-success";
 import { renderEmailAdminSignupSuccess } from "../../emails/admin-signup-success";
@@ -68,7 +69,31 @@ app.get("/:eventId/:ticketId", async (c) => {
   );
 });
 
+const TicketsPostBodySchema = z.object({
+  name: z.string().trim(),
+  email: z.email().toLowerCase(),
+  eventId: z.number(),
+  eventName: z.string(),
+  eventDate: z.string(),
+  eventLocation: z.string(),
+  eventInviteUrlIcal: z.string(),
+  eventInviteUrlGoogle: z.string(),
+  subscribe: z.boolean(),
+});
+
 app.post("/", async (c) => {
+  const body = TicketsPostBodySchema.safeParse(await c.req.json());
+
+  if (!body.success) {
+    return c.json(
+      {
+        status: "error",
+        data: "Incorrect request data.",
+      },
+      400,
+    );
+  }
+
   const {
     name,
     email,
@@ -79,38 +104,7 @@ app.post("/", async (c) => {
     eventInviteUrlIcal,
     eventInviteUrlGoogle,
     subscribe,
-  } = await c.req.json<{
-    name: string;
-    email: string;
-    eventId: number;
-    eventName: string;
-    eventDate: string;
-    eventLocation: string;
-    eventInviteUrlIcal: string;
-    eventInviteUrlGoogle: string;
-    subscribe: boolean;
-  }>();
-
-  // TODO: Better payload validation
-  if (
-    !email ||
-    !name ||
-    !eventId ||
-    !eventName ||
-    !eventDate ||
-    !eventLocation ||
-    !eventInviteUrlIcal ||
-    !eventInviteUrlGoogle ||
-    typeof subscribe !== "boolean"
-  ) {
-    return c.json(
-      {
-        status: "error",
-        data: "Incorrect request data.",
-      },
-      400,
-    );
-  }
+  } = body.data;
 
   const normalizedBodyName = normalizeName(name);
   const normalizedBodyEmail = normalizeEmail(email);
@@ -298,10 +292,29 @@ app.post("/", async (c) => {
   );
 });
 
+const TicketsPutBodySchema = z.object({
+  confirmationToken: z.uuid(),
+  eventName: z.string(),
+  eventDate: z.string(),
+  eventLocation: z.string(),
+  eventInviteUrlIcal: z.string(),
+  eventInviteUrlGoogle: z.string(),
+});
+
 app.put("/:eventId/:ticketId", async (c) => {
   const { eventId, ticketId } = c.req.param();
+  const body = TicketsPutBodySchema.safeParse(await c.req.json());
 
-  // TODO: Better payload validation
+  if (!body.success) {
+    return c.json(
+      {
+        status: "error",
+        data: "Incorrect request data.",
+      },
+      400,
+    );
+  }
+
   const {
     confirmationToken,
     eventName,
@@ -309,14 +322,7 @@ app.put("/:eventId/:ticketId", async (c) => {
     eventLocation,
     eventInviteUrlIcal,
     eventInviteUrlGoogle,
-  } = await c.req.json<{
-    confirmationToken: string;
-    eventName: string;
-    eventDate: string;
-    eventLocation: string;
-    eventInviteUrlIcal: string;
-    eventInviteUrlGoogle: string;
-  }>();
+  } = body.data;
 
   const ticket = await c.env.DB.prepare(
     `select * from tickets where event_id = ? and id = ?`,
