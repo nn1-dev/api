@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS subscribers (
     email TEXT UNIQUE NOT NULL,
     confirmed INTEGER NOT NULL CHECK (confirmed IN (0, 1)),
     confirmation_token TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS tickets (
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     confirmed INTEGER NOT NULL CHECK (confirmed IN (0, 1)),
     confirmation_token TEXT,
     subscribe INTEGER NOT NULL CHECK (subscribe IN (0, 1)),
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_tickets_event_id ON tickets (event_id);
