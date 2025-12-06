@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { renderEmailEventTest, renderEmailNewsletterTest } from "../../emails";
+import { renderEmailNewsletter_2025_12_06 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
 
@@ -18,9 +18,13 @@ const TEMPLATE_MAPPER_NEWSLETTER: Record<
     subject: string;
   }
 > = {
-  "test-newsletter": {
-    template: renderEmailNewsletterTest,
-    subject: "✨ NN1 Dev Club #Test Newsletter",
+  // "test-newsletter": {
+  //   template: renderEmailNewsletterTest,
+  //   subject: "✨ NN1 Dev Club #Test Newsletter",
+  // },
+  "2025-12-06": {
+    template: renderEmailNewsletter_2025_12_06,
+    subject: "✨ NN1 Dev Club #10",
   },
 };
 
@@ -34,10 +38,10 @@ const TEMPLATE_MAPPER_EVENT: Record<
     subject: string;
   }
 > = {
-  "test-event": {
-    template: renderEmailEventTest,
-    subject: "✨ NN1 Dev Club #Test Event",
-  },
+  // "test-event": {
+  //   template: renderEmailEventTest,
+  //   subject: "✨ NN1 Dev Club #Test Event",
+  // },
 };
 
 async function createEmailPayload({
