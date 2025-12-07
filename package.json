@@ -25,7 +25,9 @@
     "wrangler": "4.53.0"
   },
   "scripts": {
-    "deploy": "wrangler deploy --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version) && _SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=nn1-dev --project=api && npx sentry-cli sourcemaps upload --org=nn1-dev --project=api --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
+    "deploy": "wrangler deploy --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
+    "postdeploy": "npm run sentry:sourcemaps",
+    "sentry:sourcemaps": "_SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=your-org --project=your-project && sentry-cli sourcemaps upload --org=your-org --project=your-project --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
     "deploy:dry": "tsc && wrangler deploy --dry-run",
     "gen": "wrangler types",
     "dev": "pnpm seed:dev && wrangler dev",
