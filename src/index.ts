@@ -27,7 +27,7 @@ app.get("/sentry", async () => {
     },
     async () => {
       await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for 100ms
-      throw new Error("Three!");
+      throw new Error("Four!");
     },
   );
 });
@@ -36,10 +36,9 @@ app.route("/tickets", tickets);
 app.route("/broadcast", broadcast);
 
 export default Sentry.withSentry((env: Cloudflare.Env) => {
-  const { id: versionId } = env.CF_VERSION_METADATA;
   return {
     dsn: "https://e6e2b273e018ce8f05569c395cf9b7a0@o4507649139146752.ingest.de.sentry.io/4510492115796048",
-    release: versionId,
+    release: env.SENTRY_RELEASE,
     // Adds request headers and IP for users, for more info visit:
     // https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#sendDefaultPii
     sendDefaultPii: true,
