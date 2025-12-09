@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import * as Sentry from "@sentry/cloudflare";
+import { withSentry } from "@sentry/cloudflare";
 import handlerErrorNotFound from "./handlers/errorNotFound";
 import handlerErrorServer from "./handlers/errorServer";
 import status from "./handlers/status";
@@ -23,7 +23,7 @@ app.route("/subscribers", subscribers);
 app.route("/tickets", tickets);
 app.route("/broadcast", broadcast);
 
-export default Sentry.withSentry((env: Cloudflare.Env) => {
+export default withSentry((env: Cloudflare.Env) => {
   return {
     dsn: "https://e6e2b273e018ce8f05569c395cf9b7a0@o4507649139146752.ingest.de.sentry.io/4510492115796048",
     release: env.SENTRY_RELEASE,

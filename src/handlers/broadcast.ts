@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import * as Sentry from "@sentry/cloudflare";
+import { instrumentD1WithSentry } from "@sentry/cloudflare";
 import { renderEmailNewsletter_2025_12_06 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
@@ -74,7 +74,7 @@ const app = new Hono<{
 }>();
 app.use(auth);
 app.use("*", async (c, next) => {
-  c.set("db", Sentry.instrumentD1WithSentry(c.env.DB));
+  c.set("db", instrumentD1WithSentry(c.env.DB));
   await next();
 });
 

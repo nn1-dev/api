@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import * as Sentry from "@sentry/cloudflare";
+import { instrumentD1WithSentry } from "@sentry/cloudflare";
 import { renderEmailSignupSuccess } from "../../emails/signup-success";
 import { renderEmailAdminSignupSuccess } from "../../emails/admin-signup-success";
 import { renderEmailSignupConfirm } from "../../emails/signup-confirm";
@@ -15,7 +15,7 @@ const app = new Hono<{
 
 app.use(auth);
 app.use("*", async (c, next) => {
-  c.set("db", Sentry.instrumentD1WithSentry(c.env.DB));
+  c.set("db", instrumentD1WithSentry(c.env.DB));
   await next();
 });
 

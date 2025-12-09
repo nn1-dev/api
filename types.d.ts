@@ -1,3 +1,11 @@
+declare namespace Cloudflare {
+  interface Env {
+    // This is assigned on the CI/CD on the build time phase
+    // and it isn't defined in wrangler.json
+    SENTRY_RELEASE: string;
+  }
+}
+
 interface Subscriber {
   id: string;
   email: string;
