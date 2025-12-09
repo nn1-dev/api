@@ -17,9 +17,15 @@ jobs:
       - name: Build & Deploy Worker
         uses: cloudflare/wrangler-action@v3
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: ${{ github.sha }}
         with:
-          command: deploy --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(npx sentry-cli releases propose-version)
-          postCommands: _SENTRY_RELEASE=$(npx sentry-cli releases propose-version) && npx sentry-cli releases new $_SENTRY_RELEASE --org=nn1-dev --project=api && npx sentry-cli sourcemaps upload --org=nn1-dev --project=api --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist
+          command: deploy --outdir dist --upload-source-maps --var SENTRY_RELEASE:$SENTRY_RELEASE
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Install Sentry CLI
+        run: curl -sL https://sentry.io/get-cli/ | sh
+      - name: Upload sourcemaps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: ${{ github.sha }}
+        run: sentry-cli releases new $SENTRY_RELEASE --org=nn1-dev --project=api && sentry-cli sourcemaps upload --org=nn1-dev --project=api --release=$SENTRY_RELEASE --strip-prefix 'dist/..' dist
