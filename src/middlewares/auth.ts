@@ -1,9 +1,14 @@
 import { Context, Next } from "hono";
+import { ERROR_MESSAGE_UNAUTHORIZED } from "../constants";
+import { captureMessage } from "@sentry/cloudflare";
 
 const auth = async (c: Context<{ Bindings: Cloudflare.Env }>, next: Next) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader) {
-    return c.json({ status: "error", data: "Unauthorized" }, 401);
+    captureMessage(ERROR_MESSAGE_UNAUTHORIZED, {
+      level: "error",
+    });
+    return c.json({ status: "error", data: ERROR_MESSAGE_UNAUTHORIZED }, 401);
   }
 
   const token = authHeader.startsWith("Bearer ")
@@ -11,7 +16,13 @@ const auth = async (c: Context<{ Bindings: Cloudflare.Env }>, next: Next) => {
     : authHeader;
 
   if (token !== c.env.AUTH) {
-    return c.json({ status: "error", data: "Unauthorized" }, 401);
+    captureMessage(ERROR_MESSAGE_UNAUTHORIZED, {
+      level: "error",
+      extra: {
+        token,
+      },
+    });
+    return c.json({ status: "error", data: ERROR_MESSAGE_UNAUTHORIZED }, 401);
   }
 
   return next();

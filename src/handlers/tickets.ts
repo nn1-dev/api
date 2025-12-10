@@ -1,12 +1,20 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { instrumentD1WithSentry } from "@sentry/cloudflare";
+import {
+  captureException,
+  captureMessage,
+  instrumentD1WithSentry,
+} from "@sentry/cloudflare";
 import { renderEmailSignupSuccess } from "../../emails/signup-success";
 import { renderEmailAdminSignupSuccess } from "../../emails/admin-signup-success";
 import { renderEmailSignupConfirm } from "../../emails/signup-confirm";
 import { renderEmailAdminSignupCancel } from "../../emails/admin-signup-cancel";
 import auth from "../middlewares/auth";
+import {
+  ERROR_MESSAGE_BAD_REQUEST,
+  ERROR_MESSAGE_DATA_CONFLICT,
+} from "../constants";
 
 const app = new Hono<{
   Bindings: Cloudflare.Env;
@@ -61,10 +69,17 @@ app.get("/:eventId/:ticketId", async (c) => {
     .first<Ticket>();
 
   if (!ticket) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        eventId,
+        ticketId,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: `Ticket not found.`,
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       404,
     );
@@ -96,10 +111,16 @@ app.post("/", async (c) => {
   const body = TicketsPostBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -151,10 +172,11 @@ app.post("/", async (c) => {
     ]);
 
     if (!newTicketResult.results.length) {
+      captureException(new Error(ERROR_MESSAGE_DATA_CONFLICT));
       return c.json(
         {
           status: "error",
-          data: `Ticket not found.`,
+          data: ERROR_MESSAGE_DATA_CONFLICT,
         },
         404,
       );
@@ -193,6 +215,7 @@ app.post("/", async (c) => {
     ]);
 
     if (emailUserResponse.error || emailAdminResponse.error) {
+      captureException(emailUserResponse.error || emailAdminResponse.error);
       return c.json(
         {
           status: "error",
@@ -250,10 +273,11 @@ app.post("/", async (c) => {
   ]);
 
   if (!ticketsResult.results.length) {
+    captureException(new Error(ERROR_MESSAGE_DATA_CONFLICT));
     return c.json(
       {
         status: "error",
-        data: `Ticket not found.`,
+        data: ERROR_MESSAGE_DATA_CONFLICT,
       },
       404,
     );
@@ -275,6 +299,7 @@ app.post("/", async (c) => {
   });
 
   if (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",
@@ -308,10 +333,16 @@ app.put("/:eventId/:ticketId", async (c) => {
   const body = TicketsPutBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -332,10 +363,18 @@ app.put("/:eventId/:ticketId", async (c) => {
     .first<Ticket>();
 
   if (!ticket || ticket.confirmation_token !== confirmationToken) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        eventId,
+        ticketId,
+        confirmationToken,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Invalid ticket id or confirmation token.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -381,6 +420,7 @@ app.put("/:eventId/:ticketId", async (c) => {
     }),
   ]);
   if (emailUserResponse.error || emailAdminResponse.error) {
+    captureException(emailUserResponse.error || emailAdminResponse.error);
     return c.json(
       {
         status: "error",
@@ -439,10 +479,17 @@ app.delete("/:eventId/:ticketId", async (c) => {
   ]);
 
   if (!ticketResult.results.length) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        eventId,
+        ticketId,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: `Ticket not found.`,
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       404,
     );
@@ -457,7 +504,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
     email: ticket.email,
   });
 
-  const adminConfirmationError = await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: "NN1 Dev Club <club@nn1.dev>",
     to: c.env.ADMIN_EMAILS.split(","),
     subject: "Ticket cancelled 👎",
@@ -465,11 +512,12 @@ app.delete("/:eventId/:ticketId", async (c) => {
     text: email.text,
   });
 
-  if (adminConfirmationError.error) {
+  if (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",
-        data: adminConfirmationError.error,
+        data: error,
       },
       400,
     );

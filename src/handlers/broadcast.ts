@@ -1,10 +1,15 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { instrumentD1WithSentry } from "@sentry/cloudflare";
+import {
+  instrumentD1WithSentry,
+  captureException,
+  captureMessage,
+} from "@sentry/cloudflare";
 import { renderEmailNewsletter_2025_12_06 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
+import { ERROR_MESSAGE_BAD_REQUEST } from "../constants";
 
 // https://resend.mintlify.dev/docs/api-reference/emails/send-batch-emails
 const RESEND_MAX_BATCH_CHUNK = 100;
@@ -88,10 +93,16 @@ app.post("/newsletter", async (c) => {
   const body = BroadcastNewsletterBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -103,10 +114,16 @@ app.post("/newsletter", async (c) => {
   } = body.data;
 
   if (!Object.keys(TEMPLATE_MAPPER_NEWSLETTER).includes(bodyTemplate)) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        template: bodyTemplate,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Template is not configured.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -155,7 +172,8 @@ app.post("/newsletter", async (c) => {
     for (const chunk of payloadsChunked) {
       await resend.batch.send(chunk);
     }
-  } catch {
+  } catch (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",
@@ -184,10 +202,16 @@ app.post("/event", async (c) => {
   const body = BroadcastEventBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -196,10 +220,16 @@ app.post("/event", async (c) => {
   const { template: bodyTemplate, eventId: bodyEventId } = body.data;
 
   if (!Object.keys(TEMPLATE_MAPPER_EVENT).includes(bodyTemplate)) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        template: bodyTemplate,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Template is not configured.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -236,7 +266,8 @@ app.post("/event", async (c) => {
     for (const chunk of payloadsChunked) {
       await resend.batch.send(chunk);
     }
-  } catch {
+  } catch (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",

@@ -1,14 +1,16 @@
 import { Context } from "hono";
+import { captureException } from "@sentry/cloudflare";
+import { ERROR_MESSAGE_INTERNAL_SERVER } from "../constants";
 
 const handlerErrorServer = (
   error: Error,
   c: Context<{ Bindings: Cloudflare.Env }>,
 ) => {
-  console.error(error);
+  captureException(error);
   return c.json(
     {
       status: "error",
-      data: `Internal Server Error`,
+      data: ERROR_MESSAGE_INTERNAL_SERVER,
     },
     500,
   );

@@ -1,10 +1,18 @@
 import { Hono } from "hono";
 import { Resend } from "resend";
 import z from "zod";
-import { instrumentD1WithSentry } from "@sentry/cloudflare";
+import {
+  captureException,
+  captureMessage,
+  instrumentD1WithSentry,
+} from "@sentry/cloudflare";
 import { renderEmailAdminNewsletterSubscribe } from "../../emails/admin-newsletter-subscribe";
 import { renderEmailAdminNewsletterUnsubscribe } from "../../emails/admin-newsletter-unsubscribe";
 import auth from "../middlewares/auth";
+import {
+  ERROR_MESSAGE_BAD_REQUEST,
+  ERROR_MESSAGE_DATA_CONFLICT,
+} from "../constants";
 
 const app = new Hono<{
   Bindings: Cloudflare.Env;
@@ -43,10 +51,16 @@ app.get("/:subscriberId", async (c) => {
     .first<Subscriber>();
 
   if (!subscriber) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        subscriberId,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: `Subscriber not found.`,
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       404,
     );
@@ -70,10 +84,16 @@ app.post("/", async (c) => {
   const body = SubscribersPostBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -109,10 +129,11 @@ app.post("/", async (c) => {
   ]);
 
   if (!subscriberResult.results.length) {
+    captureException(new Error(ERROR_MESSAGE_DATA_CONFLICT));
     return c.json(
       {
         status: "error",
-        data: `Subscriber not found.`,
+        data: ERROR_MESSAGE_DATA_CONFLICT,
       },
       404,
     );
@@ -167,10 +188,16 @@ app.put("/:subscriberId", async (c) => {
   const body = SubscribersPutBodySchema.safeParse(await c.req.json());
 
   if (!body.success) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        body: await c.req.text(),
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Incorrect request data.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -184,10 +211,17 @@ app.put("/:subscriberId", async (c) => {
     .first<Subscriber>();
 
   if (!subscriber || subscriber.confirmation_token !== confirmationToken) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        subscriberId,
+        confirmationToken,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: "Invalid subscriber id or confirmation token.",
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       400,
     );
@@ -214,6 +248,7 @@ app.put("/:subscriberId", async (c) => {
   });
 
   if (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",
@@ -242,10 +277,16 @@ app.delete("/:subscriberId", async (c) => {
   ]);
 
   if (!subscriberResult.results.length) {
+    captureMessage(ERROR_MESSAGE_BAD_REQUEST, {
+      level: "error",
+      extra: {
+        subscriberId,
+      },
+    });
     return c.json(
       {
         status: "error",
-        data: `Subscriber not found.`,
+        data: ERROR_MESSAGE_BAD_REQUEST,
       },
       404,
     );
@@ -268,6 +309,7 @@ app.delete("/:subscriberId", async (c) => {
   });
 
   if (error) {
+    captureException(error);
     return c.json(
       {
         status: "error",
