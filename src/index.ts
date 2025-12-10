@@ -36,5 +36,8 @@ export default withSentry((env: Cloudflare.Env) => {
     // Learn more at
     // https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#tracesSampleRate
     tracesSampleRate: 1.0,
+    environment: env.URL_CLIENT.includes("localhost")
+      ? "development"
+      : "production",
   };
 }, app);
