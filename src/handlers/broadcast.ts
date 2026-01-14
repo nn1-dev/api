@@ -6,7 +6,7 @@ import {
   captureException,
   captureMessage,
 } from "@sentry/cloudflare";
-import { renderEmailNewsletter_2025_12_06 } from "../../emails";
+import { renderEmailNewsletter_2026_01_14 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
 import { ERROR_MESSAGE_BAD_REQUEST } from "../constants";
@@ -28,9 +28,10 @@ const TEMPLATE_MAPPER_NEWSLETTER: Record<
   //   template: renderEmailNewsletterTest,
   //   subject: "✨ NN1 Dev Club #Test Newsletter",
   // },
-  "2025-12-06": {
-    template: renderEmailNewsletter_2025_12_06,
-    subject: "✨ NN1 Dev Club #10",
+  "2026-01-14": {
+    template: renderEmailNewsletter_2026_01_14,
+    subject:
+      "✨ NN1 Dev Club #10 with Keith Cirkel, Samantha Wildman and Ian Zant-Boer",
   },
 };
 
