@@ -247,13 +247,6 @@ app.put("/:subscriberId", async (c) => {
 
   if (error) {
     captureException(error);
-    return c.json(
-      {
-        status: "error",
-        data: error,
-      },
-      400,
-    );
   }
 
   return c.json(
@@ -308,13 +301,6 @@ app.delete("/:subscriberId", async (c) => {
 
   if (error) {
     captureException(error);
-    return c.json(
-      {
-        status: "error",
-        data: error,
-      },
-      400,
-    );
   }
 
   return c.json(

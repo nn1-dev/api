@@ -215,15 +215,19 @@ app.post("/", async (c) => {
       }),
     ]);
 
-    if (emailUserResponse.error || emailAdminResponse.error) {
-      captureException(emailUserResponse.error || emailAdminResponse.error);
+    if (emailUserResponse.error) {
+      captureException(emailUserResponse.error);
       return c.json(
         {
           status: "error",
-          data: emailUserResponse.error || emailAdminResponse.error,
+          data: emailUserResponse.error,
         },
         400,
       );
+    }
+
+    if (emailAdminResponse.error) {
+      captureException(emailAdminResponse.error);
     }
 
     if (subscribe) {
@@ -253,13 +257,6 @@ app.post("/", async (c) => {
 
         if (error) {
           captureException(error);
-          return c.json(
-            {
-              status: "error",
-              data: error,
-            },
-            400,
-          );
         }
       }
 
@@ -285,13 +282,6 @@ app.post("/", async (c) => {
 
         if (error) {
           captureException(error);
-          return c.json(
-            {
-              status: "error",
-              data: error,
-            },
-            400,
-          );
         }
       }
     }
@@ -464,15 +454,19 @@ app.put("/:eventId/:ticketId", async (c) => {
       text: emailAdmin.text,
     }),
   ]);
-  if (emailUserResponse.error || emailAdminResponse.error) {
-    captureException(emailUserResponse.error || emailAdminResponse.error);
+  if (emailUserResponse.error) {
+    captureException(emailUserResponse.error);
     return c.json(
       {
         status: "error",
-        data: emailUserResponse.error || emailAdminResponse.error,
+        data: emailUserResponse.error,
       },
       400,
     );
+  }
+
+  if (emailAdminResponse.error) {
+    captureException(emailAdminResponse.error);
   }
 
   if (ticket.subscribe) {
@@ -502,13 +496,6 @@ app.put("/:eventId/:ticketId", async (c) => {
 
       if (error) {
         captureException(error);
-        return c.json(
-          {
-            status: "error",
-            data: error,
-          },
-          400,
-        );
       }
     }
 
@@ -534,13 +521,6 @@ app.put("/:eventId/:ticketId", async (c) => {
 
       if (error) {
         captureException(error);
-        return c.json(
-          {
-            status: "error",
-            data: error,
-          },
-          400,
-        );
       }
     }
   }
@@ -603,13 +583,6 @@ app.delete("/:eventId/:ticketId", async (c) => {
 
   if (error) {
     captureException(error);
-    return c.json(
-      {
-        status: "error",
-        data: error,
-      },
-      400,
-    );
   }
 
   return c.json(
