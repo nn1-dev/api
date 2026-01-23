@@ -20,6 +20,11 @@ const app = new Hono<{
   Variables: { db: D1Database };
 }>();
 
+const sanitizeSubscriber = (subscriber: Subscriber) => {
+  const { confirmation_token, ...rest } = subscriber;
+  return rest;
+};
+
 app.use(auth);
 app.use("*", async (c, next) => {
   c.set("db", instrumentD1WithSentry(c.env.DB));
@@ -36,7 +41,7 @@ app.get("/", async (c) => {
   return c.json(
     {
       status: "success",
-      data: results,
+      data: results.map(sanitizeSubscriber),
     },
     200,
   );
@@ -70,7 +75,7 @@ app.get("/:subscriberId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: subscriber,
+      data: sanitizeSubscriber(subscriber),
     },
     200,
   );
@@ -111,7 +116,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "success",
-        data: subscriber,
+        data: sanitizeSubscriber(subscriber),
       },
       200,
     );
@@ -170,7 +175,7 @@ app.post("/", async (c) => {
   return c.json(
     {
       status: "success",
-      data: newSubscriber,
+      data: sanitizeSubscriber(newSubscriber),
     },
     201,
   );
@@ -252,7 +257,10 @@ app.put("/:subscriberId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: { ...subscriber, confirmed: 1, confirmation_token: null },
+      data: {
+        ...sanitizeSubscriber(subscriber),
+        confirmed: 1,
+      },
     },
     200,
   );
@@ -306,7 +314,7 @@ app.delete("/:subscriberId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: subscriber,
+      data: sanitizeSubscriber(subscriber),
     },
     200,
   );

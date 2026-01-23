@@ -22,6 +22,11 @@ const app = new Hono<{
   Variables: { db: D1Database };
 }>();
 
+const sanitizeTicket = (ticket: Ticket) => {
+  const { confirmation_token, ...rest } = ticket;
+  return rest;
+};
+
 app.use(auth);
 app.use("*", async (c, next) => {
   c.set("db", instrumentD1WithSentry(c.env.DB));
@@ -36,7 +41,7 @@ app.get("/", async (c) => {
   return c.json(
     {
       status: "success",
-      data: results,
+      data: results.map(sanitizeTicket),
     },
     200,
   );
@@ -54,7 +59,7 @@ app.get("/:eventId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: results,
+      data: results.map(sanitizeTicket),
     },
     200,
   );
@@ -89,7 +94,7 @@ app.get("/:eventId/:ticketId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: ticket,
+      data: sanitizeTicket(ticket),
     },
     200,
   );
@@ -148,7 +153,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "success",
-        data: existingTicket,
+        data: sanitizeTicket(existingTicket),
       },
       200,
     );
@@ -289,7 +294,7 @@ app.post("/", async (c) => {
     return c.json(
       {
         status: "success",
-        data: newTicket,
+        data: sanitizeTicket(newTicket),
       },
       201,
     );
@@ -347,7 +352,7 @@ app.post("/", async (c) => {
   return c.json(
     {
       status: "success",
-      data: ticket,
+      data: sanitizeTicket(ticket),
     },
     201,
   );
@@ -528,7 +533,7 @@ app.put("/:eventId/:ticketId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: { ...ticket, confirmed: 1, confirmation_token: null },
+      data: { ...sanitizeTicket(ticket), confirmed: 1 },
     },
     200,
   );
@@ -588,7 +593,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
   return c.json(
     {
       status: "success",
-      data: ticket,
+      data: sanitizeTicket(ticket),
     },
     200,
   );
