@@ -7,6 +7,7 @@ import { renderEmailAdminNewsletterUnsubscribe } from "../../emails/admin-newsle
 import { renderEmailSubscriberConfirm } from "../../emails/newsletter-confirm";
 import auth from "../middlewares/auth";
 import {
+  EMAIL_FROM,
   ERROR_MESSAGE_BAD_REQUEST,
   ERROR_MESSAGE_DATA_CONFLICT,
 } from "../constants";
@@ -138,7 +139,7 @@ app.post("/", async (c) => {
   const resend = new Resend(c.env.API_KEY_RESEND);
 
   const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to: email,
     subject: "Confirm your email please",
     html: emailTemplate.html,
@@ -214,7 +215,7 @@ app.put("/:subscriberId", async (c) => {
     email: subscriber.email,
   });
   const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to: c.env.ADMIN_EMAILS.split(","),
     subject: "✨ Newsletter - user subscribed",
     html: emailAdmin.html,
@@ -265,7 +266,7 @@ app.delete("/:subscriberId", async (c) => {
   });
 
   const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to: c.env.ADMIN_EMAILS.split(","),
     subject: "✨ Newsletter - user unsubscribed",
     html: emailAdmin.html,

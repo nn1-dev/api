@@ -9,7 +9,7 @@ import {
 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
-import { ERROR_MESSAGE_BAD_REQUEST } from "../constants";
+import { EMAIL_FROM, ERROR_MESSAGE_BAD_REQUEST } from "../constants";
 
 // https://resend.mintlify.dev/docs/api-reference/emails/send-batch-emails
 const RESEND_MAX_BATCH_CHUNK = 100;
@@ -73,7 +73,7 @@ async function createEmailPayload({
   const { html, text } = await templatePromise();
 
   return {
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to,
     subject,
     html,

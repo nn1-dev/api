@@ -8,6 +8,7 @@ import { renderEmailSignupConfirm } from "../../emails/signup-confirm";
 import { renderEmailAdminSignupCancel } from "../../emails/admin-signup-cancel";
 import auth from "../middlewares/auth";
 import {
+  EMAIL_FROM,
   ERROR_MESSAGE_BAD_REQUEST,
   ERROR_MESSAGE_DATA_CONFLICT,
 } from "../constants";
@@ -188,14 +189,14 @@ app.post("/", async (c) => {
     ]);
     const [emailUserResponse, emailAdminResponse] = await Promise.all([
       resend.emails.send({
-        from: "NN1 Dev Club <club@nn1.dev>",
+        from: EMAIL_FROM,
         to: email,
         subject: eventName,
         html: emailUser.html,
         text: emailUser.text,
       }),
       resend.emails.send({
-        from: "NN1 Dev Club <club@nn1.dev>",
+        from: EMAIL_FROM,
         to: c.env.ADMIN_EMAILS.split(","),
         subject: "✨ New signup",
         html: emailAdmin.html,
@@ -236,7 +237,7 @@ app.post("/", async (c) => {
           email: subscriber.email,
         });
         const { error } = await resend.emails.send({
-          from: "NN1 Dev Club <club@nn1.dev>",
+          from: EMAIL_FROM,
           to: c.env.ADMIN_EMAILS.split(","),
           subject: "✨ Newsletter - user subscribed",
           html: emailAdmin.html,
@@ -261,7 +262,7 @@ app.post("/", async (c) => {
           email,
         });
         const { error } = await resend.emails.send({
-          from: "NN1 Dev Club <club@nn1.dev>",
+          from: EMAIL_FROM,
           to: c.env.ADMIN_EMAILS.split(","),
           subject: "✨ Newsletter - user subscribed",
           html: emailAdmin.html,
@@ -314,7 +315,7 @@ app.post("/", async (c) => {
   });
 
   const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to: email,
     subject: "Confirm your email please",
     html: emailTemplate.html,
@@ -414,14 +415,14 @@ app.put("/:eventId/:ticketId", async (c) => {
   ]);
   const [emailUserResponse, emailAdminResponse] = await Promise.all([
     resend.emails.send({
-      from: "NN1 Dev Club <club@nn1.dev>",
+      from: EMAIL_FROM,
       to: ticket.email,
       subject: eventName,
       html: emailUser.html,
       text: emailUser.text,
     }),
     resend.emails.send({
-      from: "NN1 Dev Club <club@nn1.dev>",
+      from: EMAIL_FROM,
       to: c.env.ADMIN_EMAILS.split(","),
       subject: "✨ New signup",
       html: emailAdmin.html,
@@ -461,7 +462,7 @@ app.put("/:eventId/:ticketId", async (c) => {
         email: subscriber.email,
       });
       const { error } = await resend.emails.send({
-        from: "NN1 Dev Club <club@nn1.dev>",
+        from: EMAIL_FROM,
         to: c.env.ADMIN_EMAILS.split(","),
         subject: "✨ Newsletter - user subscribed",
         html: emailAdmin.html,
@@ -486,7 +487,7 @@ app.put("/:eventId/:ticketId", async (c) => {
         email: ticket.email,
       });
       const { error } = await resend.emails.send({
-        from: "NN1 Dev Club <club@nn1.dev>",
+        from: EMAIL_FROM,
         to: c.env.ADMIN_EMAILS.split(","),
         subject: "✨ Newsletter - user subscribed",
         html: emailAdmin.html,
@@ -541,7 +542,7 @@ app.delete("/:eventId/:ticketId", async (c) => {
   });
 
   const { error } = await resend.emails.send({
-    from: "NN1 Dev Club <club@nn1.dev>",
+    from: EMAIL_FROM,
     to: c.env.ADMIN_EMAILS.split(","),
     subject: "Ticket cancelled 👎",
     html: email.html,
