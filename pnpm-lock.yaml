@@ -18,8 +18,8 @@ importers:
         specifier: ^10.36.0
         version: 10.36.0
       hono:
-        specifier: ^4.11.6
-        version: 4.11.6
+        specifier: ^4.11.7
+        version: 4.11.7
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -1130,8 +1130,8 @@ packages:
     engines: {node: 20 || >=22}
     hasBin: true
 
-  hono@4.11.6:
-    resolution: {integrity: sha512-ofIiiHyl34SV6AuhE3YT2mhO5HRWokce+eUYE82TsP6z0/H3JeJcjVWEMSIAiw2QkjDOEpES/lYsg8eEbsLtdw==}
+  hono@4.11.7:
+    resolution: {integrity: sha512-l7qMiNee7t82bH3SeyUCt9UF15EVmaBvsppY2zQtrbIhl/yzBTny+YUxsVjSjQ6gaqaeVtZmGocom8TzBlA4Yw==}
     engines: {node: '>=16.9.0'}
 
   html-to-text@9.0.5:
@@ -2438,7 +2438,7 @@ snapshots:
       package-json-from-dist: 1.0.1
       path-scurry: 2.0.1
 
-  hono@4.11.6: {}
+  hono@4.11.7: {}
 
   html-to-text@9.0.5:
     dependencies:
