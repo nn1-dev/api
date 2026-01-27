@@ -7,53 +7,73 @@ import { Row } from "@react-email/components";
 function Socials() {
   return (
     <Row style={{ display: "table-cell", paddingBottom: "26px" }}>
-      <Column style={{ paddingRight: "13px" }}>
+      <Column style={{ paddingRight: "9px" }}>
+        <Link href="https://github.com/nn1dev">
+          <Img
+            src="https://nn1.dev/emails/github.png"
+            width="36"
+            height="36"
+            alt="GitHub logo"
+          />
+        </Link>
+      </Column>
+      <Column style={{ paddingRight: "9px" }}>
         <Link href="https://www.linkedin.com/company/nn1-dev">
           <Img
             src="https://nn1.dev/emails/linkedin.png"
-            width="39"
-            height="39"
-            alt="NN1 Dev Club Logo"
+            width="36"
+            height="36"
+            alt="LinkedIn logo"
           />
         </Link>
       </Column>
-      <Column style={{ paddingRight: "13px" }}>
+      <Column style={{ paddingRight: "9px" }}>
+        <Link href="https://instagram.com/nn1dev">
+          <Img
+            src="https://nn1.dev/emails/instagram.png"
+            width="36"
+            height="36"
+            alt="Instagram logo"
+          />
+        </Link>
+      </Column>
+      <Column style={{ paddingRight: "9px" }}>
+        <Link href="https://facebook.com/nn1dev">
+          <Img
+            src="https://nn1.dev/emails/facebook.png"
+            width="36"
+            height="36"
+            alt="Facebook logo"
+          />
+        </Link>
+      </Column>
+      <Column style={{ paddingRight: "9px" }}>
         <Link href="https://mastodon.social/@nn1dev">
           <Img
             src="https://nn1.dev/emails/mastodon.png"
-            width="39"
-            height="39"
-            alt="NN1 Dev Club Logo"
+            width="36"
+            height="36"
+            alt="Mastodon logo"
           />
         </Link>
       </Column>
-      <Column style={{ paddingRight: "13px" }}>
+      <Column style={{ paddingRight: "9px" }}>
         <Link href="https://bsky.app/profile/nn1.dev">
           <Img
             src="https://nn1.dev/emails/bluesky.png"
-            width="39"
-            height="39"
-            alt="NN1 Dev Club Logo"
+            width="36"
+            height="36"
+            alt="Bluesky logo"
           />
         </Link>
       </Column>
-      <Column style={{ paddingRight: "13px" }}>
+      <Column style={{ paddingRight: "9px" }}>
         <Link href="https://chat.nn1.dev/">
           <Img
             src="https://nn1.dev/emails/discord.png"
-            width="39"
-            height="39"
-            alt="NN1 Dev Club Logo"
-          />
-        </Link>
-      </Column>
-      <Column style={{ paddingRight: "13px" }}>
-        <Link href="https://github.com/nn1-dev">
-          <Img
-            src="https://nn1.dev/emails/github.png"
-            width="39"
-            height="39"
-            alt="NN1 Dev Club Logo"
+            width="36"
+            height="36"
+            alt="Discord logo"
           />
         </Link>
       </Column>
