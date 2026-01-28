@@ -50,7 +50,7 @@ const TEMPLATE_MAPPER_EVENT: Record<
   // },
   "10-2026-01-28": {
     template: renderEmailEvent_10_2026_01_28,
-    subject: "✨ NN1 Dev Club #10 - We will see you tomorrow!",
+    subject: "✨ NN1 Dev Club #10 - See you tomorrow!",
   },
   "10-2026-01-30": {
     template: renderEmailEvent_10_2026_01_30,
