@@ -3,9 +3,9 @@ import { Resend } from "resend";
 import z from "zod";
 import { instrumentD1WithSentry, captureException } from "@sentry/cloudflare";
 import {
-  renderEmailNewsletter_2026_01_27,
-  renderEmailEvent_10_2026_01_28,
-  renderEmailEvent_10_2026_01_30,
+  renderEmailNewsletter_2026_02_02,
+  // renderEmailEvent_10_2026_01_28,
+  // renderEmailEvent_10_2026_01_30,
 } from "../../emails";
 import { chunkArray } from "../utils";
 import auth from "../middlewares/auth";
@@ -28,9 +28,13 @@ const TEMPLATE_MAPPER_NEWSLETTER: Record<
   //   template: renderEmailNewsletterTest,
   //   subject: "✨ NN1 Dev Club #Test Newsletter",
   // },
-  "2026-01-27": {
-    template: renderEmailNewsletter_2026_01_27,
-    subject: "✨ NN1 Dev Club #10 is on Thursday!",
+  // "2026-01-27": {
+  //   template: renderEmailNewsletter_2026_01_27,
+  //   subject: "✨ NN1 Dev Club #10 is on Thursday!",
+  // },
+  "2026-02-02": {
+    template: renderEmailNewsletter_2026_02_02,
+    subject: "✨ NN1 Dev Club #11: registration is open!",
   },
 };
 
@@ -48,14 +52,14 @@ const TEMPLATE_MAPPER_EVENT: Record<
   //   template: renderEmailEventTest,
   //   subject: "✨ NN1 Dev Club #Test Event",
   // },
-  "10-2026-01-28": {
-    template: renderEmailEvent_10_2026_01_28,
-    subject: "✨ NN1 Dev Club #10 - See you tomorrow!",
-  },
-  "10-2026-01-30": {
-    template: renderEmailEvent_10_2026_01_30,
-    subject: "✨ NN1 Dev Club #10 - Thank you for attending!",
-  },
+  // "10-2026-01-28": {
+  //   template: renderEmailEvent_10_2026_01_28,
+  //   subject: "✨ NN1 Dev Club #10 - See you tomorrow!",
+  // },
+  // "10-2026-01-30": {
+  //   template: renderEmailEvent_10_2026_01_30,
+  //   subject: "✨ NN1 Dev Club #10 - Thank you for attending!",
+  // },
 };
 
 async function createEmailPayload({
