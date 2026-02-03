@@ -7,13 +7,19 @@ import status from "./handlers/status";
 import subscribers from "./handlers/subscribers";
 import tickets from "./handlers/tickets";
 import broadcast from "./handlers/broadcast";
-import sentryTracing from "./middlewares/sentry-tracing";
+// import sentryTracing from "./middlewares/sentry-tracing";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
 // middlewares
 app.use(logger());
-app.use(sentryTracing);
+// app.use(sentryTracing);
+
+app.use("*", async (c, next) => {
+  console.log({ headersRoot: c.req.header() });
+
+  await next();
+});
 
 // 404 & 500
 app.notFound(handlerErrorNotFound);
@@ -41,6 +47,6 @@ export default withSentry((env: Cloudflare.Env) => {
     environment: env.URL_CLIENT.includes("localhost")
       ? "development"
       : "production",
-    debug: true,
+    // debug: true,
   };
 }, app);
