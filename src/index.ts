@@ -13,6 +13,11 @@ const app = new Hono<{ Bindings: Cloudflare.Env }>();
 // middlewares
 app.use(logger());
 
+app.use("*", async (c, next) => {
+  console.log({ h: c.req.header() });
+  await next();
+});
+
 // 404 & 500
 app.notFound(handlerErrorNotFound);
 app.onError(handlerErrorServer);
