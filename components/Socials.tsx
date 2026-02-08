@@ -18,7 +18,7 @@ function Socials() {
         </Link>
       </Column>
       <Column style={{ paddingRight: "9px" }}>
-        <Link href="https://www.linkedin.com/company/nn1-dev">
+        <Link href="https://www.linkedin.com/company/nn1dev/">
           <Img
             src="https://nn1.dev/emails/linkedin.png"
             width="36"
